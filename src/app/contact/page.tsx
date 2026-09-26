@@ -2,8 +2,8 @@ import Contact from "@/components/Contact";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact | Nand Kishore Soni",
-  description: "Get in touch with Nand Kishore Soni for freelance projects, design collaborations, or development opportunities.",
+  title: "Contact | Quenum Tiego",
+  description: "Get in touch with Quenum Tiego for freelance projects, design collaborations, or development opportunities.",
 };
 
 export default function ContactPage() {

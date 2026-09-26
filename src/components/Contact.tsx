@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Send, 
-  Check, 
-  X
+import {
+  Send,
+  Check,
+  X,
 } from "lucide-react";
-import { useForm, ValidationError } from "@formspree/react";
 
 export default function Contact() {
   const containerRef = useRef<HTMLElement>(null);
@@ -22,11 +21,13 @@ export default function Contact() {
   const [copied, setCopied] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Formspree state hook
-  const [state, handleSubmitToFormspree, resetFormspree] = useForm("xpwdwykv");
+  // ============================================================
+  // FORM STATE
+  // ============================================================
 
-  // Form fields state
   const [formState, setFormState] = useState({
     name: "",
     email: "",
@@ -34,45 +35,131 @@ export default function Contact() {
     message: "",
   });
 
-  // Sync Formspree success state
-  useEffect(() => {
-    if (state.succeeded) {
-      setShowSuccess(true);
+  // ============================================================
+  // COPY EMAIL
+  // ============================================================
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText("Tiegoquenum@gmail.com");
+
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy email:", err);
+    }
+  };
+
+  // ============================================================
+  // INPUT CHANGE
+  // ============================================================
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+
+    setFormState((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Retire le message d'erreur dès que l'utilisateur recommence
+    if (errorMessage) {
+      setErrorMessage("");
+    }
+  };
+
+  // ============================================================
+  // FORM SUBMIT
+  // ============================================================
+
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    setErrorMessage("");
+
+    // Protection contre les doubles clics
+    if (isSubmitting) {
+      return;
+    }
+
+    // Vérification côté client
+    if (
+      !formState.name.trim() ||
+      !formState.email.trim() ||
+      !formState.subject.trim() ||
+      !formState.message.trim()
+    ) {
+      setErrorMessage(
+        "Merci de remplir tous les champs."
+      );
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formState),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            "Une erreur est survenue lors de l'envoi."
+        );
+      }
+
+      // Ferme le formulaire
       setShowFormModal(false);
+
+      // Affiche la modale de succès
+      setShowSuccess(true);
+
+      // Reset du formulaire
       setFormState({
         name: "",
         email: "",
         subject: "",
         message: "",
       });
+    } catch (error) {
+      console.error(
+        "Erreur lors de l'envoi du formulaire :",
+        error
+      );
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Impossible d'envoyer le message. Veuillez réessayer."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [state.succeeded]);
-
-  const handleCopyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText("nandkishorsoni098765@gmail.com");
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
-    }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await handleSubmitToFormspree(e);
-  };
+  // ============================================================
+  // GSAP ANIMATIONS
+  // ============================================================
 
   useGSAP(
     () => {
-      const tl = gsap.timeline({ delay: 0.2 });
+      const tl = gsap.timeline({
+        delay: 0.2,
+      });
 
       tl.from(contactLogoRef.current, {
         y: -20,
@@ -80,14 +167,20 @@ export default function Contact() {
         duration: 0.8,
         ease: "power3.out",
       })
-        .from(logoRef.current, {
-          y: -30,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power3.out",
-        }, "-=0.6")
         .from(
-          infoRef.current ? infoRef.current.children : [],
+          logoRef.current,
+          {
+            y: -30,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power3.out",
+          },
+          "-=0.6"
+        )
+        .from(
+          infoRef.current
+            ? infoRef.current.children
+            : [],
           {
             y: 20,
             opacity: 0,
@@ -98,11 +191,14 @@ export default function Contact() {
           "-=0.4"
         )
         .from(
-          constraintsRef.current ? constraintsRef.current.children : [],
+          constraintsRef.current
+            ? constraintsRef.current.children
+            : [],
           {
             scale: 0,
             opacity: 0,
-            rotate: () => Math.random() * 40 - 20,
+            rotate: () =>
+              Math.random() * 40 - 20,
             duration: 0.8,
             stagger: 0.08,
             ease: "back.out(1.5)",
@@ -120,10 +216,15 @@ export default function Contact() {
           "-=0.4"
         );
     },
-    { scope: containerRef }
+    {
+      scope: containerRef,
+    }
   );
 
-  // Drag constraints helper
+  // ============================================================
+  // STICKERS
+  // ============================================================
+
   const stickers = [
     {
       id: "badge-rock",
@@ -133,16 +234,16 @@ export default function Contact() {
       initialY: "18%",
       rotate: 8,
     },
+
     {
       id: "whatsapp",
       type: "capsule",
       label: "WHATSAPP ↗",
-      href: " https://wa.me/qr/IMQYK6RFIGOCG1",
+      href: "https://wa.me/qr/IMQYK6RFIGOCG1",
       initialX: "18%",
       initialY: "32%",
       rotate: 5,
     },
-
 
     {
       id: "instagram",
@@ -153,6 +254,7 @@ export default function Contact() {
       initialY: "12%",
       rotate: -12,
     },
+
     {
       id: "badge-lips",
       type: "badge",
@@ -161,6 +263,7 @@ export default function Contact() {
       initialY: "48%",
       rotate: -8,
     },
+
     {
       id: "linkedin",
       type: "capsule",
@@ -170,6 +273,7 @@ export default function Contact() {
       initialY: "68%",
       rotate: 15,
     },
+
     {
       id: "google-skills",
       type: "capsule",
@@ -179,6 +283,7 @@ export default function Contact() {
       initialY: "38%",
       rotate: -6,
     },
+
     {
       id: "github",
       type: "capsule",
@@ -188,6 +293,7 @@ export default function Contact() {
       initialY: "64%",
       rotate: -10,
     },
+
     {
       id: "badge-heart",
       type: "badge",
@@ -196,6 +302,7 @@ export default function Contact() {
       initialY: "35%",
       rotate: 14,
     },
+
     {
       id: "send-message",
       type: "capsule",
@@ -208,55 +315,88 @@ export default function Contact() {
     },
   ];
 
+  // ============================================================
+  // RETURN
+  // ============================================================
+
   return (
     <section
       ref={containerRef}
       className="relative w-full min-h-screen bg-palette-grey text-[#161616] py-24 flex flex-col justify-between z-20 overflow-hidden"
     >
-      {/* Top-Left Page Logo */}
+      {/* ========================================================
+          TOP LEFT LOGO
+      ======================================================== */}
+
       <div
         ref={contactLogoRef}
         className="absolute top-6 left-8 z-20 text-[#F44A22] text-4xl tracking-widest pointer-events-none drop-shadow-md origin-center"
-        style={{ fontFamily: "'Montserrat', sans-serif" }}
+        style={{
+          fontFamily: "'Montserrat', sans-serif",
+        }}
       >
         CONTACT
       </div>
 
-      {/* 1. Top Section: Marquee Title */}
-      <div ref={logoRef} className="w-full select-none overflow-hidden pb-4">
-        {/* Repeating text marquee */}
+      {/* ========================================================
+          TOP SECTION
+      ======================================================== */}
+
+      <div
+        ref={logoRef}
+        className="w-full select-none overflow-hidden pb-4"
+      >
+        {/* Marquee */}
+
         <div className="animate-marquee font-cormorant text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] font-medium uppercase tracking-tight text-[#161616] flex items-center gap-8 whitespace-nowrap">
-          <span>CONTACT ✦ CONTACT ✦ CONTACT ✦ CONTACT ✦ CONTACT ✦&nbsp;</span>
-          <span>CONTACT ✦ CONTACT ✦ CONTACT ✦ CONTACT ✦ CONTACT ✦&nbsp;</span>
+          <span>
+            CONTACT ✦ CONTACT ✦ CONTACT ✦ CONTACT ✦ CONTACT ✦
+            &nbsp;
+          </span>
+
+          <span>
+            CONTACT ✦ CONTACT ✦ CONTACT ✦ CONTACT ✦ CONTACT ✦
+            &nbsp;
+          </span>
         </div>
 
-        {/* Thin Divider Rule */}
+        {/* Divider */}
+
         <div className="border-t border-[#161616] w-full my-4 md:my-6 px-8" />
 
-        {/* Subheadings */}
-        <div 
+        {/* Informations */}
+
+        <div
           ref={infoRef}
           className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-4 text-[10px] md:text-xs font-semibold font-jakarta tracking-wider text-[#161616]/70 uppercase"
         >
           <div className="text-center md:text-left">
-            Je suis là pour transformer votre brief en quelque chose d’exceptionnel.
+            Je suis là pour transformer votre brief en quelque chose
+            d’exceptionnel.
           </div>
+
           <div className="text-center">
-            Envoyez-moi simplement un message ou interagissez avec les stickers.
+            Envoyez-moi simplement un message ou interagissez avec
+            les stickers.
           </div>
+
           <div className="text-center md:text-right">
             © 2026 Addy Quenum. All rights reserved
           </div>
         </div>
       </div>
 
-      {/* 2. Middle Section: Stickers Draggable Canvas */}
-      <div 
-        ref={constraintsRef} 
+      {/* ========================================================
+          MIDDLE SECTION / STICKERS
+      ======================================================== */}
+
+      <div
+        ref={constraintsRef}
         className="relative w-full flex-grow min-h-[380px] md:min-h-[480px] overflow-hidden select-none pointer-events-auto px-6"
       >
         {stickers.map((sticker) => {
-          const isCapsule = sticker.type === "capsule";
+          const isCapsule =
+            sticker.type === "capsule";
 
           return (
             <motion.div
@@ -264,30 +404,39 @@ export default function Contact() {
               drag
               dragConstraints={constraintsRef}
               dragElastic={0.15}
-              whileDrag={{ 
-                scale: 1.05, 
+              whileDrag={{
+                scale: 1.05,
                 rotate: 0,
-                boxShadow: "0 15px 30px rgba(0, 0, 0, 0.2)",
-                zIndex: 50 
+                boxShadow:
+                  "0 15px 30px rgba(0, 0, 0, 0.2)",
+                zIndex: 50,
               }}
-              initial={{ 
-                left: sticker.initialX, 
-                top: sticker.initialY, 
-                rotate: sticker.rotate 
+              initial={{
+                left: sticker.initialX,
+                top: sticker.initialY,
+                rotate: sticker.rotate,
               }}
               className="absolute select-none group cursor-grab active:cursor-grabbing"
               style={{
-                touchAction: "none"
+                touchAction: "none",
               }}
             >
               {isCapsule ? (
-                // Capsule Sticker Layout
+                /* ==================================================
+                   CAPSULE
+                ================================================== */
+
                 <div
                   onClick={() => {
                     if (sticker.isAction) {
                       setShowFormModal(true);
+                      setErrorMessage("");
                     } else if (sticker.href) {
-                      window.open(sticker.href, "_blank", "noopener,noreferrer");
+                      window.open(
+                        sticker.href,
+                        "_blank",
+                        "noopener,noreferrer"
+                      );
                     }
                   }}
                   className={`flex items-center gap-2 px-6 py-3.5 rounded-full border border-[#161616] font-jakarta font-bold text-sm md:text-base shadow-md transition-all duration-300 ${
@@ -299,90 +448,118 @@ export default function Contact() {
                   <span>{sticker.label}</span>
                 </div>
               ) : (
-                // Circular Badge Sticker Layout
+                /* ==================================================
+                   BADGE
+                ================================================== */
+
                 <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full bg-[#FEF8E8] border border-[#161616] flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-                  
                   {/* Rotating Circular Sticker Border Text */}
-                  <svg 
-                    viewBox="0 0 100 100" 
+
+                  <svg
+                    viewBox="0 0 100 100"
                     className="absolute inset-0 w-full h-full animate-[spin_30s_linear_infinite]"
                   >
-                    <path 
-                      id={`circlePath-${sticker.id}`} 
-                      d="M 50,50 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" 
-                      fill="none" 
+                    <path
+                      id={`circlePath-${sticker.id}`}
+                      d="M 50,50 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
+                      fill="none"
                     />
+
                     <text className="text-[6.5px] font-bold font-jakarta fill-[#161616] tracking-[0.19em]">
-                      <textPath href={`#circlePath-${sticker.id}`} startOffset="0%">
+                      <textPath
+                        href={`#circlePath-${sticker.id}`}
+                        startOffset="0%"
+                      >
                         Prend moi ✦ Prend moi ✦ Prend moi ✦ Prend moi ✦
                       </textPath>
                     </text>
                   </svg>
 
                   {/* SVG Center Illustrations */}
+
                   <div className="relative z-10 flex items-center justify-center">
+                    {/* ROCK */}
+
                     {sticker.badgeType === "rock" && (
-                      <svg 
-                        viewBox="0 0 24 24" 
-                        className="w-9 h-9 md:w-11 md:h-11 text-[#161616]" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="1.8" 
-                        strokeLinecap="round" 
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="w-9 h-9 md:w-11 md:h-11 text-[#161616]"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
                         strokeLinejoin="round"
                       >
-                        {/* Rock Hand Gesture */}
                         <path d="M18 10h-2V6a2 2 0 0 0-4 0v4H9V5a2 2 0 0 0-4 0v6.5a4.5 4.5 0 0 0 9 0V10" />
+
                         <path d="M5 11.5V7a2 2 0 0 1 4 0v4.5" />
+
                         <path d="M17 11.5v3.5a5 5 0 0 1-10 0v-3.5" />
                       </svg>
                     )}
 
+                    {/* LIPS */}
+
                     {sticker.badgeType === "lips" && (
-                      <svg 
-                        viewBox="0 0 24 24" 
-                        className="w-10 h-10 md:w-12 md:h-12 text-[#161616]" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="1.8" 
-                        strokeLinecap="round" 
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="w-10 h-10 md:w-12 md:h-12 text-[#161616]"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
                         strokeLinejoin="round"
                       >
-                        {/* Upper Lip */}
-                        <path d="M3 12c3-2 5-3 9-1 4-2 6-1 9 1" fill="#F44A22" />
-                        {/* Lower Lip */}
-                        <path d="M3 12c4 3 14 3 18 0" fill="#F44A22" />
-                        {/* Tongue */}
-                        <path d="M10 12v3c0 1.5 1 2 2 2s2-.5 2-2v-3" fill="#FFEAA7" />
+                        <path
+                          d="M3 12c3-2 5-3 9-1 4-2 6-1 9 1"
+                          fill="#F44A22"
+                        />
+
+                        <path
+                          d="M3 12c4 3 14 3 18 0"
+                          fill="#F44A22"
+                        />
+
+                        <path
+                          d="M10 12v3c0 1.5 1 2 2 2s2-.5 2-2v-3"
+                          fill="#FFEAA7"
+                        />
                       </svg>
                     )}
 
+                    {/* HEART */}
+
                     {sticker.badgeType === "heart" && (
-                      <svg 
-                        viewBox="0 0 24 24" 
-                        className="w-9 h-9 md:w-11 md:h-11 text-[#161616]" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="1.8" 
-                        strokeLinecap="round" 
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="w-9 h-9 md:w-11 md:h-11 text-[#161616]"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
                         strokeLinejoin="round"
                       >
-                        {/* Heart */}
-                        <path 
-                          d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" 
-                          fill="#F44A22" 
+                        <path
+                          d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
+                          fill="#F44A22"
                         />
-                        {/* Lightning bolt inside heart */}
-                        <path d="M13 6l-3.5 5.5h3l-2 6 4.5-6.5h-3.5Z" fill="#FFEAA7" />
+
+                        <path
+                          d="M13 6l-3.5 5.5h3l-2 6 4.5-6.5h-3.5Z"
+                          fill="#FFEAA7"
+                        />
                       </svg>
                     )}
                   </div>
 
-                  {/* Curvaceous Sticker Peel Fold Effect for the Lips badge */}
+                  {/* Lips Fold Effect */}
+
                   {sticker.badgeType === "lips" && (
-                    <div 
+                    <div
                       className="absolute bottom-[3px] right-[4px] w-6 h-6 md:w-8 md:h-8 bg-[#E4E2E3] border-l border-t border-[#161616] rounded-tl-full shadow-inner rotate-12 pointer-events-none"
-                      style={{ transformOrigin: "bottom right" }}
+                      style={{
+                        transformOrigin: "bottom right",
+                      }}
                     />
                   )}
                 </div>
@@ -392,8 +569,11 @@ export default function Contact() {
         })}
       </div>
 
-      {/* 3. Bottom Section: Giant Footer Email */}
-      <div 
+      {/* ========================================================
+          BOTTOM EMAIL
+      ======================================================== */}
+
+      <div
         ref={footerEmailRef}
         className="w-full flex flex-col items-center justify-center relative mt-auto px-6 py-4"
       >
@@ -401,7 +581,6 @@ export default function Contact() {
           Click pour copier l&apos;email
         </span>
 
-        {/* Large Email Link */}
         <h1
           onClick={handleCopyEmail}
           className="font-cormorant font-normal text-4xl sm:text-6xl md:text-7xl lg:text-[7.5rem] leading-none text-[#161616] hover:text-[#F44A22] active:scale-95 transition-all duration-500 text-center select-none cursor-pointer tracking-tighter w-full max-w-7xl break-all"
@@ -409,41 +588,85 @@ export default function Contact() {
           Tiegoquenum@gmail.com
         </h1>
 
-        {/* Floating Tooltip Indicator */}
+        {/* Copy tooltip */}
+
         <AnimatePresence>
           {copied && (
             <motion.span
-              initial={{ opacity: 0, y: 15, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 15, scale: 0.9 }}
+              initial={{
+                opacity: 0,
+                y: 15,
+                scale: 0.9,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+              }}
+              exit={{
+                opacity: 0,
+                y: 15,
+                scale: 0.9,
+              }}
               className="absolute -top-12 bg-[#F44A22] text-[#FEF8E8] text-xs font-bold px-4 py-2 rounded-xl shadow-lg border border-[#161616] flex items-center gap-1.5"
             >
-              <Check size={14} /> Copied to Clipboard!
+              <Check size={14} />
+              Copied to Clipboard!
             </motion.span>
           )}
         </AnimatePresence>
       </div>
 
-      {/* 4. Form Modal Overlay */}
+      {/* ========================================================
+          FORM MODAL
+      ======================================================== */}
+
       <AnimatePresence>
         {showFormModal && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            exit={{
+              opacity: 0,
+            }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm px-6"
           >
-            {/* Modal Body Card */}
+            {/* Modal Body */}
+
             <motion.div
-              initial={{ scale: 0.95, y: 30 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 30 }}
-              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+              initial={{
+                scale: 0.95,
+                y: 30,
+              }}
+              animate={{
+                scale: 1,
+                y: 0,
+              }}
+              exit={{
+                scale: 0.95,
+                y: 30,
+              }}
+              transition={{
+                type: "spring",
+                damping: 25,
+                stiffness: 350,
+              }}
               className="bg-[#FEF8E8] border border-[#161616] shadow-2xl rounded-3xl p-6 md:p-10 max-w-xl w-full text-[#161616] relative flex flex-col justify-between overflow-hidden"
             >
               {/* Close Button */}
+
               <button
-                onClick={() => setShowFormModal(false)}
+                type="button"
+                onClick={() => {
+                  if (!isSubmitting) {
+                    setShowFormModal(false);
+                    setErrorMessage("");
+                  }
+                }}
                 className="absolute top-6 right-6 w-9 h-9 rounded-full border border-[#161616] flex items-center justify-center hover:bg-[#F44A22] hover:text-white transition-colors duration-300 cursor-pointer"
               >
                 <X size={18} />
@@ -453,12 +676,23 @@ export default function Contact() {
                 <span className="text-xs font-bold tracking-widest text-[#F44A22] uppercase font-jakarta">
                   Direct Line
                 </span>
+
                 <h3 className="text-3xl font-bold mt-1 mb-6 tracking-tight font-sans">
-                  Envoi un message
+                  Envoie un message
                 </h3>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                  {/* Name Input */}
+                {/* ==================================================
+                    FORM
+                ================================================== */}
+
+                <form
+                  onSubmit={handleSubmit}
+                  className="flex flex-col gap-5"
+                >
+                  {/* ==================================================
+                      NAME
+                  ================================================== */}
+
                   <div className="relative w-full">
                     <input
                       type="text"
@@ -468,22 +702,32 @@ export default function Contact() {
                       onChange={handleInputChange}
                       placeholder=" "
                       required
-                      disabled={state.submitting}
+                      disabled={isSubmitting}
+                      autoComplete="name"
                       className="peer w-full pt-6 pb-2 px-4 bg-white/20 border border-[#161616] rounded-2xl text-palette-midnight focus:outline-none focus:border-[#F44A22] focus:bg-white/60 transition-all duration-300 text-base"
                     />
+
                     <label
                       htmlFor="name"
-                      className="absolute left-4 top-4 text-palette-stone text-base pointer-events-none transition-all duration-300 
-                      peer-placeholder-shown:top-4 peer-placeholder-shown:text-base 
-                      peer-focus:top-1 peer-focus:text-xs peer-focus:text-[#F44A22] peer-focus:font-semibold
-                      peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-[#161616]/75"
+                      className="absolute left-4 top-4 text-palette-stone text-base pointer-events-none transition-all duration-300
+                      peer-placeholder-shown:top-4
+                      peer-placeholder-shown:text-base
+                      peer-focus:top-1
+                      peer-focus:text-xs
+                      peer-focus:text-[#F44A22]
+                      peer-focus:font-semibold
+                      peer-[:not(:placeholder-shown)]:top-1
+                      peer-[:not(:placeholder-shown)]:text-xs
+                      peer-[:not(:placeholder-shown)]:text-[#161616]/75"
                     >
                       Nom
                     </label>
                   </div>
-                  <ValidationError field="name" errors={state.errors} className="text-[#F44A22] text-xs -mt-3 font-semibold font-jakarta" />
 
-                  {/* Email Input */}
+                  {/* ==================================================
+                      EMAIL
+                  ================================================== */}
+
                   <div className="relative w-full">
                     <input
                       type="email"
@@ -493,22 +737,32 @@ export default function Contact() {
                       onChange={handleInputChange}
                       placeholder=" "
                       required
-                      disabled={state.submitting}
+                      disabled={isSubmitting}
+                      autoComplete="email"
                       className="peer w-full pt-6 pb-2 px-4 bg-white/20 border border-[#161616] rounded-2xl text-palette-midnight focus:outline-none focus:border-[#F44A22] focus:bg-white/60 transition-all duration-300 text-base"
                     />
+
                     <label
                       htmlFor="email"
-                      className="absolute left-4 top-4 text-palette-stone text-base pointer-events-none transition-all duration-300 
-                      peer-placeholder-shown:top-4 peer-placeholder-shown:text-base 
-                      peer-focus:top-1 peer-focus:text-xs peer-focus:text-[#F44A22] peer-focus:font-semibold
-                      peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-[#161616]/75"
+                      className="absolute left-4 top-4 text-palette-stone text-base pointer-events-none transition-all duration-300
+                      peer-placeholder-shown:top-4
+                      peer-placeholder-shown:text-base
+                      peer-focus:top-1
+                      peer-focus:text-xs
+                      peer-focus:text-[#F44A22]
+                      peer-focus:font-semibold
+                      peer-[:not(:placeholder-shown)]:top-1
+                      peer-[:not(:placeholder-shown)]:text-xs
+                      peer-[:not(:placeholder-shown)]:text-[#161616]/75"
                     >
-                     Email
+                      Email
                     </label>
                   </div>
-                  <ValidationError field="email" errors={state.errors} className="text-[#F44A22] text-xs -mt-3 font-semibold font-jakarta" />
 
-                  {/* Subject Input */}
+                  {/* ==================================================
+                      SUBJECT
+                  ================================================== */}
+
                   <div className="relative w-full">
                     <input
                       type="text"
@@ -518,22 +772,32 @@ export default function Contact() {
                       onChange={handleInputChange}
                       placeholder=" "
                       required
-                      disabled={state.submitting}
+                      disabled={isSubmitting}
+                      autoComplete="off"
                       className="peer w-full pt-6 pb-2 px-4 bg-white/20 border border-[#161616] rounded-2xl text-palette-midnight focus:outline-none focus:border-[#F44A22] focus:bg-white/60 transition-all duration-300 text-base"
                     />
+
                     <label
                       htmlFor="subject"
-                      className="absolute left-4 top-4 text-palette-stone text-base pointer-events-none transition-all duration-300 
-                      peer-placeholder-shown:top-4 peer-placeholder-shown:text-base 
-                      peer-focus:top-1 peer-focus:text-xs peer-focus:text-[#F44A22] peer-focus:font-semibold
-                      peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-[#161616]/75"
+                      className="absolute left-4 top-4 text-palette-stone text-base pointer-events-none transition-all duration-300
+                      peer-placeholder-shown:top-4
+                      peer-placeholder-shown:text-base
+                      peer-focus:top-1
+                      peer-focus:text-xs
+                      peer-focus:text-[#F44A22]
+                      peer-focus:font-semibold
+                      peer-[:not(:placeholder-shown)]:top-1
+                      peer-[:not(:placeholder-shown)]:text-xs
+                      peer-[:not(:placeholder-shown)]:text-[#161616]/75"
                     >
                       Sujet
                     </label>
                   </div>
-                  <ValidationError field="subject" errors={state.errors} className="text-[#F44A22] text-xs -mt-3 font-semibold font-jakarta" />
 
-                  {/* Message Input */}
+                  {/* ==================================================
+                      MESSAGE
+                  ================================================== */}
+
                   <div className="relative w-full">
                     <textarea
                       id="message"
@@ -543,29 +807,66 @@ export default function Contact() {
                       onChange={handleInputChange}
                       placeholder=" "
                       required
-                      disabled={state.submitting}
+                      disabled={isSubmitting}
                       className="peer w-full pt-6 pb-3 px-4 bg-white/20 border border-[#161616] rounded-2xl text-palette-midnight focus:outline-none focus:border-[#F44A22] focus:bg-white/60 transition-all duration-300 text-base resize-none"
                     />
+
                     <label
                       htmlFor="message"
-                      className="absolute left-4 top-4 text-palette-stone text-base pointer-events-none transition-all duration-300 
-                      peer-placeholder-shown:top-4 peer-placeholder-shown:text-base 
-                      peer-focus:top-1 peer-focus:text-xs peer-focus:text-[#F44A22] peer-focus:font-semibold
-                      peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-[#161616]/75"
+                      className="absolute left-4 top-4 text-palette-stone text-base pointer-events-none transition-all duration-300
+                      peer-placeholder-shown:top-4
+                      peer-placeholder-shown:text-base
+                      peer-focus:top-1
+                      peer-focus:text-xs
+                      peer-focus:text-[#F44A22]
+                      peer-focus:font-semibold
+                      peer-[:not(:placeholder-shown)]:top-1
+                      peer-[:not(:placeholder-shown)]:text-xs
+                      peer-[:not(:placeholder-shown)]:text-[#161616]/75"
                     >
                       Message
                     </label>
                   </div>
-                  <ValidationError field="message" errors={state.errors} className="text-[#F44A22] text-xs -mt-3 font-semibold font-jakarta" />
 
-                  {/* Submit Form Button */}
+                  {/* ==================================================
+                      ERROR
+                  ================================================== */}
+
+                  <AnimatePresence>
+                    {errorMessage && (
+                      <motion.div
+                        initial={{
+                          opacity: 0,
+                          y: -5,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                        }}
+                        exit={{
+                          opacity: 0,
+                          y: -5,
+                        }}
+                        className="text-[#F44A22] text-sm font-semibold font-jakarta bg-[#F44A22]/10 border border-[#F44A22]/30 rounded-xl px-4 py-3"
+                      >
+                        {errorMessage}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* ==================================================
+                      SUBMIT BUTTON
+                  ================================================== */}
+
                   <button
                     type="submit"
-                    disabled={state.submitting}
+                    disabled={isSubmitting}
                     className="w-full py-4 bg-[#F44A22] text-[#FEF8E8] font-semibold border border-[#161616] rounded-2xl hover:bg-[#F44A22]/90 hover:scale-[1.01] active:scale-[0.99] disabled:bg-gray-400 disabled:scale-100 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-[#F44A22]/20 flex items-center justify-center gap-2 group cursor-pointer"
                   >
-                    {state.submitting ? (
+                    {isSubmitting ? (
                       <>
+                        {/* Spinner */}
+
                         <svg
                           className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                           fill="none"
@@ -579,17 +880,24 @@ export default function Contact() {
                             stroke="currentColor"
                             strokeWidth="4"
                           />
+
                           <path
                             className="opacity-75"
                             fill="currentColor"
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           />
                         </svg>
-                        <span>Envoi en cours...</span>
+
+                        <span>
+                          Envoi en cours...
+                        </span>
                       </>
                     ) : (
                       <>
-                        <span>Envoyer le message</span>
+                        <span>
+                          Envoyer le message
+                        </span>
+
                         <Send
                           size={18}
                           className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
@@ -604,23 +912,46 @@ export default function Contact() {
         )}
       </AnimatePresence>
 
-      {/* Success Modal Overlay */}
+      {/* ========================================================
+          SUCCESS MODAL
+      ======================================================== */}
+
       <AnimatePresence>
         {showSuccess && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            exit={{
+              opacity: 0,
+            }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md px-4"
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+              initial={{
+                scale: 0.9,
+                y: 20,
+              }}
+              animate={{
+                scale: 1,
+                y: 0,
+              }}
+              exit={{
+                scale: 0.9,
+                y: 20,
+              }}
+              transition={{
+                type: "spring",
+                damping: 25,
+                stiffness: 350,
+              }}
               className="bg-[#FEF8E8] border border-[#161616] shadow-2xl rounded-3xl p-8 md:p-10 max-w-md w-full text-center relative overflow-hidden flex flex-col items-center justify-center"
             >
-              {/* Draw-in SVG Checkmark */}
+              {/* Animated Check */}
+
               <div className="w-20 h-20 text-[#F44A22] mb-6 flex items-center justify-center">
                 <svg
                   className="w-full h-full"
@@ -634,39 +965,62 @@ export default function Contact() {
                     r="23"
                     stroke="currentColor"
                     strokeWidth="4"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    initial={{
+                      pathLength: 0,
+                    }}
+                    animate={{
+                      pathLength: 1,
+                    }}
+                    transition={{
+                      duration: 0.6,
+                      ease: "easeOut",
+                    }}
                   />
+
                   <motion.path
                     d="M16 26L23 33L36 18"
                     stroke="currentColor"
                     strokeWidth="4"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ delay: 0.5, duration: 0.4, ease: "easeOut" }}
+                    initial={{
+                      pathLength: 0,
+                    }}
+                    animate={{
+                      pathLength: 1,
+                    }}
+                    transition={{
+                      delay: 0.5,
+                      duration: 0.4,
+                      ease: "easeOut",
+                    }}
                   />
                 </svg>
               </div>
 
-              {/* Title & Success Message */}
+              {/* Title */}
+
               <h4
                 className="text-3xl font-semibold tracking-wider text-[#F44A22] mb-3"
-                style={{ fontFamily: "'Samarkan', sans-serif" }}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                }}
               >
                 Message Envoyé!
               </h4>
+
               <p className="text-[#161616]/80 font-light leading-relaxed mb-8">
-                Merci de m’avoir contacté ! Votre message a bien été envoyé. Nand Kishore Soni vous répondra dans les plus brefs délais.
+                Merci de m’avoir contacté ! Votre message a
+                bien été envoyé. Addy vous répondra dans les
+                plus brefs délais.
               </p>
 
-              {/* Close Button */}
+              {/* Close */}
+
               <button
+                type="button"
                 onClick={() => {
                   setShowSuccess(false);
-                  resetFormspree();
                 }}
                 className="px-8 py-3 bg-palette-midnight border border-[#161616] hover:bg-[#F44A22] hover:text-[#FEF8E8] text-white rounded-xl shadow-lg transition-colors duration-300 font-semibold cursor-pointer"
               >

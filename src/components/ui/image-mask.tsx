@@ -1,294 +1,530 @@
-import React from 'react';
+const projects = [
+  {
+    number: "01",
+    name: "MyAlodo",
+    category: "Plateforme digitale",
+    services: "Design • Développement",
+    url: "https://www.myalodo.com/",
+  },
+  {
+    number: "02",
+    name: "Pure Raw Hair",
+    category: "E-commerce",
+    services: "Design • Développement",
+    url: "https://purerawhair.fr/",
+  },
+  {
+    number: "03",
+    name: "Derou",
+    category: "Site institutionnel",
+    services: "Design • Développement",
+    url: "https://www.derou.tg/",
+  },
+  {
+    number: "04",
+    name: "Confortis",
+    category: "Site institutionnel",
+    services: "Design • Développement",
+    url: "https://www.confortis.tg/",
+  },
+  {
+    number: "05",
+    name: "Ibiza Club",
+    category: "Événementiel",
+    services: "Design • Développement",
+    url: "https://ibizaclub.fr/",
+  },
+  {
+    number: "06",
+    name: "Independant Studio",
+    category: "Portfolio créatif",
+    services: "Design • Développement",
+    url: "https://independantstudio.fr/",
+  },
+  {
+    number: "07",
+    name: "The Watch Box Co.",
+    category: "E-commerce",
+    services: "Design • Développement",
+    url: "https://thewatchboxco.com.au/",
+  },
+  {
+    number: "08",
+    name: "Kazart",
+    category: "Portfolio",
+    services: "Design • Développement",
+    url: "https://kazart.vercel.app/",
+  },
+  {
+    number: "09",
+    name: "DevOp360",
+    category: "Site professionnel",
+    services: "Design • Développement",
+    url: "https://devop360-neon.vercel.app/",
+  },
+  {
+    number: "10",
+    name: "Prolab Afrik",
+    category: "Plateforme digitale",
+    services: "Design • Développement",
+    url: "https://prolabafrik.com/",
+  },
+];
 
-type ComponentProps = React.HTMLAttributes<HTMLDivElement>;
+function ProjectVisual({
+  number,
+}: {
+  number: string;
+}) {
+  return (
+    <div className="group/visual relative h-full min-h-[220px] overflow-hidden rounded-sm bg-[#F1F1EE]">
 
-const Component = React.forwardRef<HTMLDivElement, ComponentProps>(
-  ({ className = 'w-full max-w-full', ...props }, ref) => {
-    const renderArrowOverlay = () => (
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/25 backdrop-blur-md border border-white/40 w-12 h-12 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-90 group-hover:scale-100 shadow-xl z-20 pointer-events-none">
-        <svg 
-          className="w-5 h-5 text-[#F44A22] transform transition-transform duration-300 group-hover:rotate-45"
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="2.5" 
-          viewBox="0 0 24 24"
+      {/* Glow orange principal */}
+      <div
+        className="
+          absolute
+          -right-20
+          -top-20
+          h-72
+          w-72
+          rounded-full
+          bg-[#F4512A]
+          opacity-15
+          blur-[80px]
+          transition-all
+          duration-700
+          group-hover/visual:scale-125
+          group-hover/visual:opacity-25
+        "
+      />
+
+      {/* Deuxième glow */}
+      <div
+        className="
+          absolute
+          -bottom-32
+          -left-20
+          h-64
+          w-64
+          rounded-full
+          bg-[#F4512A]
+          opacity-10
+          blur-[90px]
+          transition-all
+          duration-700
+          group-hover/visual:translate-x-10
+        "
+      />
+
+      {/* Grille */}
+      <div
+        className="absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage: `
+            linear-gradient(
+              rgba(0,0,0,.7) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(0,0,0,.7) 1px,
+              transparent 1px
+            )
+          `,
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      {/* Cercle extérieur */}
+      <div
+        className="
+          absolute
+          left-1/2
+          top-1/2
+          h-32
+          w-32
+          -translate-x-1/2
+          -translate-y-1/2
+          rounded-full
+          border
+          border-[#F4512A]/40
+          transition-all
+          duration-700
+          group-hover/visual:h-44
+          group-hover/visual:w-44
+        "
+      />
+
+      {/* Cercle intérieur */}
+      <div
+        className="
+          absolute
+          left-1/2
+          top-1/2
+          h-20
+          w-20
+          -translate-x-1/2
+          -translate-y-1/2
+          rounded-full
+          border
+          border-[#F4512A]/20
+        "
+      />
+
+      {/* Petit point central */}
+      <div
+        className="
+          absolute
+          left-1/2
+          top-1/2
+          h-2
+          w-2
+          -translate-x-1/2
+          -translate-y-1/2
+          rounded-full
+          bg-[#F4512A]
+          transition-all
+          duration-500
+          group-hover/visual:h-3
+          group-hover/visual:w-3
+        "
+      />
+
+      {/* Numéro géant */}
+      <div className="absolute bottom-4 left-6">
+        <span
+          className="
+            text-7xl
+            font-light
+            tracking-[-0.08em]
+            text-[#F4512A]/20
+            transition-all
+            duration-500
+            group-hover/visual:tracking-[-0.02em]
+          "
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-        </svg>
-      </div>
-    );
-
-    const renderNoisyMeshGradient = (
-      num: string, 
-      colors: { primary: string; secondary: string; tertiary: string }
-    ) => (
-      <div className="w-full aspect-[4/5] bg-[#161616] relative overflow-hidden group-hover:scale-105 transition-transform duration-500 flex items-center justify-center select-none">
-        {/* Top: White Highlight Blob (Fast movement) */}
-        <div 
-          className="absolute w-[95%] h-[65%] -top-[25%] left-[2.5%] rounded-full blur-[40px] opacity-80 pointer-events-none animate-float-fast-top"
-          style={{ backgroundColor: "#ffffff" }}
-        />
-        
-        {/* Mid: Main Color Blobs (Medium movement) */}
-        <div 
-          className="absolute w-[85%] h-[85%] top-[10%] -left-[10%] rounded-full blur-[35px] opacity-75 pointer-events-none animate-float-medium-mid"
-          style={{ backgroundColor: colors.primary }}
-        />
-        <div 
-          className="absolute w-[85%] h-[85%] top-[15%] -right-[10%] rounded-full blur-[35px] opacity-75 pointer-events-none animate-float-medium-mid-delayed"
-          style={{ backgroundColor: colors.secondary }}
-        />
-        
-        {/* Bottom: Dark Shade Blob (Slow movement) */}
-        <div 
-          className="absolute w-[100%] h-[60%] -bottom-[25%] left-0 rounded-full blur-[30px] opacity-90 pointer-events-none animate-float-slow-bottom"
-          style={{ backgroundColor: "#161616" }}
-        />
-
-        {/* Fine Grain SVG Noise Overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.22] pointer-events-none mix-blend-overlay z-10"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-          }}
-        />
-        {/* Number Label */}
-        <span 
-          className="relative z-20 text-[#FEF8E8] font-cormorant font-bold text-5xl md:text-6xl opacity-40 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none"
-        >
-          {num}
+          {number}
         </span>
       </div>
-    );
 
-    return (
-      <div ref={ref} className={className} {...props}>
-        {/* SVG clip-paths definition */}
-        <svg className='clipppy absolute -top-[999px] -left-[999px] w-0 h-0'>
-          <defs>
-            <clipPath id='clip-pattern' clipPathUnits={'objectBoundingBox'}>
-              <path
-                fillRule='evenodd'
-                clipRule='evenodd'
-                d='M0.71161 0H0V1H0.0362048C0.236734 1 0.42296 0.940031 0.577199 0.837408H0.74407V0.718826H0.888889V0.5H1V0.0562347V0H0.71161Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-            <clipPath id='clip-pattern1' clipPathUnits={'objectBoundingBox'}>
-              <path
-                fillRule='evenodd'
-                clipRule='evenodd'
-                d='M0.00124689 0H1V0.665217V0.88913V0.890217C1 0.950849 0.943617 1 0.874065 1C0.804513 1 0.74813 0.950849 0.74813 0.890217V0.890761C0.74813 0.951092 0.692026 1 0.622818 1C0.559929 1 0.50786 0.959615 0.498877 0.906971C0.490714 0.959506 0.439061 1 0.376559 1C0.311952 1 0.258938 0.956733 0.253565 0.901625C0.246444 0.956975 0.192577 1 0.127182 1C0.0569414 1 0 0.950362 0 0.88913V0.666304C0 0.661014 0.00042501 0.655811 0.00124689 0.650718V0Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-            <clipPath id='clip-pattern2' clipPathUnits={'objectBoundingBox'}>
-              <path
-                fillRule='evenodd'
-                clipRule='evenodd'
-                d='M0.827825 0.233206C0.928457 0.262983 1 0.338976 1 0.428023V0.964491C1 0.984102 0.979649 1 0.954545 1H0.0454546C0.0203507 1 0 0.984102 0 0.964491V0.428023C0 0.338976 0.0715426 0.262983 0.172175 0.233206C0.187663 0.102409 0.328522 0 0.5 0C0.671478 0 0.812337 0.102409 0.827825 0.233206Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-            <clipPath id='clip-pattern3' clipPathUnits={'objectBoundingBox'}>
-              <path
-                d='M1 1H0.293592V0.868235H0V0.412941C0.0268256 0.241176 0.256754 0.0822454 0.500745 0C0.788326 0.098025 0.962742 0.26 0.99851 0.409412L1 1Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-            <clipPath id='clip-pattern4' clipPathUnits={'objectBoundingBox'}>
-              <path
-                d='M0.997417 0.541807C1.02854 0.316235 0.773628 -0.00919936 0.492039 0.000199072C0.249199 0.00830422 0 0.217547 0 0.539457C0.0251948 0.836695 0.248984 1 0.492039 1C0.745469 1 0.982596 0.83787 0.997417 0.541807Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-            <clipPath id='clip-pattern5' clipPathUnits={'objectBoundingBox'}>
-              <path
-                d='M0.00886287 0.313679C0.0269396 0.216981 0.172073 0 0.502947 0C0.798211 0 0.962906 0.196934 0.992581 0.318396C1.02374 0.511792 0.937683 0.525943 0.921363 0.625C0.921363 0.716981 1 0.746462 1 0.833726C0.988294 0.89801 0.974952 0.93728 0.949553 1H0.0504066C0.0237622 0.936348 0.00886178 0.908019 0.00292682 0.834906C-0.0104279 0.748821 0.0726626 0.735849 0.0771149 0.625C0.0696933 0.525943 -0.0297155 0.520047 0.00886287 0.313679Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-            <clipPath id='clip-pattern6' clipPathUnits={'objectBoundingBox'}>
-              <path
-                d='M0 1H0.152466C0.185351 0.960002 0.327354 0.884713 0.505232 0.884713C0.683109 0.884713 0.818635 0.968237 0.849028 1H1V0.347104C0.985052 0.222406 0.838565 0.00477544 0.497758 6.98837e-05C0.156951 -0.00463567 0.0239163 0.229466 0 0.347104V1Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-            <clipPath id='clip-pattern7' clipPathUnits={'objectBoundingBox'}>
-              <path
-                d='M0 0.578143V0H0.298507C0.725373 0.027027 0.958209 0.27027 1 0.518214V1H0.147761V0.694477H0.061194V0.578143H0Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-            <clipPath id='clip-pattern8' clipPathUnits={'objectBoundingBox'}>
-              <path
-                d='M1 1H0V0.365648C0.0111437 0.322987 0.0446555 0.306894 0.110945 0.298564C0 0.231481 0.0794603 0.107906 0.22039 0.166751C0.157421 0.0690679 0.296852 -0.0156706 0.398801 0.0855445C0.407796 -0.0215584 0.578711 -0.0356796 0.604198 0.0867166C0.673163 -0.00154936 0.836582 0.0502345 0.782609 0.163217C0.890555 0.113787 1.01499 0.220886 0.887556 0.302092C0.957241 0.303259 0.983419 0.319478 1 0.365648V1Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-            <clipPath id='clip-inverted' clipPathUnits={'objectBoundingBox'}>
-              <path
-                d='M0.0998072 1H0.422076H0.749756C0.767072 1 0.774207 0.961783 0.77561 0.942675V0.807325C0.777053 0.743631 0.791844 0.731953 0.799059 0.734076H0.969813C0.996268 0.730255 1.00088 0.693206 0.999875 0.675159V0.0700637C0.999875 0.0254777 0.985045 0.00477707 0.977629 0H0.902473C0.854975 0 0.890448 0.138535 0.850165 0.138535H0.0204424C0.00408849 0.142357 0 0.180467 0 0.199045V0.410828C0 0.449045 0.0136283 0.46603 0.0204424 0.469745H0.0523086C0.0696245 0.471019 0.0735527 0.497877 0.0733523 0.511146V0.915605C0.0723903 0.983121 0.090588 1 0.0998072 1Z'
-                fill='#D9D9D9'
-              />
-            </clipPath>
-          </defs>
-        </svg>
+      {/* Label central */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span
+          className="
+            text-[10px]
+            font-medium
+            uppercase
+            tracking-[0.4em]
+            text-[#F4512A]/70
+          "
+        >
+          Digital experience
+        </span>
+      </div>
 
-        {/* 3-Column Grid for Projects 01 - 09 */}
-        <section className='grid grid-cols-3 gap-4 w-full p-0 bg-transparent'>
-          <a 
-            href="https://www.myalodo.com/"
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none" 
-            style={{ clipPath: 'url(#clip-pattern)' }}
+    </div>
+  );
+}
+
+export default function Projects() {
+  return (
+    <section className="w-full px-6 py-32 md:px-10 lg:px-16">
+
+      {/* ========================================= */}
+      {/* HEADER */}
+      {/* ========================================= */}
+
+      <div className="mx-auto mb-24 max-w-7xl">
+
+        {/* Petit label */}
+        <div className="mb-6 flex items-center gap-4">
+
+          <span className="h-px w-10 bg-[#F4512A]" />
+
+          <span
+            className="
+              text-xs
+              font-medium
+              uppercase
+              tracking-[0.3em]
+              text-[#F4512A]
+            "
           >
-            {renderNoisyMeshGradient("01", { primary: "#F44A22", secondary: "#D1C4E9", tertiary: "#161616" })}
-            {renderArrowOverlay()}
-          </a>
-          
-          <a 
-            href="https://purerawhair.fr/"
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none" 
-            style={{ clipPath: 'url(#clip-pattern1)' }}
-          >
-            {renderNoisyMeshGradient("02", { primary: "#00F2FE", secondary: "#4FACFE", tertiary: "#161616" })}
-            {renderArrowOverlay()}
-          </a>
+            Réalisations
+          </span>
 
-          <a 
-            href="https://www.derou.tg/"
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none" 
-            style={{ clipPath: 'url(#clip-pattern2)' }}
-          >
-            {renderNoisyMeshGradient("03", { primary: "#9B51E0", secondary: "#E94057", tertiary: "#161616" })}
-            {renderArrowOverlay()}
-          </a>
+        </div>
 
-          <a 
-            href="https://www.confortis.tg/"
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none" 
-            style={{ clipPath: 'url(#clip-pattern3)' }}
-          >
-            {renderNoisyMeshGradient("04", { primary: "#FFAD29", secondary: "#F44A22", tertiary: "#161616" })}
-            {renderArrowOverlay()}
-          </a>
+        {/* Titre + description */}
+        <div
+          className="
+            flex
+            flex-col
+            justify-between
+            gap-8
+            md:flex-row
+            md:items-end
+          "
+        >
 
-          <a 
-            href="https://ibizaclub.fr/"
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none" 
-            style={{ clipPath: 'url(#clip-pattern4)' }}
+          {/* TITRE */}
+          <h2
+            className="
+              max-w-3xl
+              text-4xl
+              font-semibold
+              leading-[1.05]
+              tracking-tight
+              text-[#171717]
+              md:text-6xl
+              lg:text-7xl
+            "
           >
-            {renderNoisyMeshGradient("05", { primary: "#38EF7D", secondary: "#11998E", tertiary: "#161616" })}
-            {renderArrowOverlay()}
-          </a>
+            Des expériences
+            <br />
 
-          <a 
-            href="https://independantstudio.fr/"
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none" 
-            style={{ clipPath: 'url(#clip-pattern5)' }}
+            <span className="text-[#F4512A]">
+              digitales remarquables.
+            </span>
+          </h2>
+
+          {/* DESCRIPTION */}
+          <p
+            className="
+              max-w-sm
+              text-sm
+              leading-7
+              text-[#737373]
+            "
           >
-            {renderNoisyMeshGradient("06", { primary: "#8A2387", secondary: "#E94057", tertiary: "#161616" })}
-            {renderArrowOverlay()}
-          </a>
+            Une sélection de projets imaginés et développés avec une attention
+            particulière portée au design, à l&apos;expérience et aux détails.
+          </p>
 
-          <a 
-            href="https://thewatchboxco.com.au/"
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none" 
-            style={{ clipPath: 'url(#clip-pattern6)' }}
-          >
-            {renderNoisyMeshGradient("07", { primary: "#6A11CB", secondary: "#2575FC", tertiary: "#161616" })}
-            {renderArrowOverlay()}
-          </a>
+        </div>
+      </div>
 
-          <a 
-            href="https://kazart.vercel.app/"
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none" 
-            style={{ clipPath: 'url(#clip-pattern7)' }}
-          >
-            {renderNoisyMeshGradient("08", { primary: "#e65c00", secondary: "#F9D423", tertiary: "#161616" })}
-            {renderArrowOverlay()}
-          </a>
 
-          <a 
-            href="https://devop360-neon.vercel.app/"
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none" 
-            style={{ clipPath: 'url(#clip-pattern8)' }}
-          >
-            {renderNoisyMeshGradient("09", { primary: "#3a7bd5", secondary: "#3a6073", tertiary: "#161616" })}
-            {renderArrowOverlay()}
-          </a>
-        </section>
+      {/* ========================================= */}
+      {/* PROJECTS */}
+      {/* ========================================= */}
 
-        {/* Full-width Section for Project 10 */}
-        <section className='w-full mt-4 p-0 bg-transparent'>
+      <div className="mx-auto max-w-7xl">
+
+        {projects.map((project) => (
+
           <a
-            href="https://prolabafrik.com/"
+            key={project.number}
+            href={project.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative group block overflow-hidden select-none"
-            style={{ clipPath: 'url(#clip-inverted)' }}
+            className="
+              group
+              block
+              border-t
+              border-black/10
+              py-10
+              transition-colors
+              duration-300
+              hover:border-[#F4512A]/30
+              md:py-14
+            "
           >
-             <div className="w-full aspect-[100/40] bg-[#161616] relative overflow-hidden group-hover:scale-105 transition-transform duration-500 flex items-center justify-center select-none">
-              {/* Top: White Highlight Blob (Fast movement) */}
-              <div 
-                className="absolute w-[95%] h-[70%] -top-[30%] left-[2.5%] rounded-full blur-[45px] opacity-85 pointer-events-none animate-float-fast-top"
-                style={{ backgroundColor: "#ffffff" }}
-              />
-              
-              {/* Mid: Main Color Blobs (Medium movement) */}
-              <div 
-                className="absolute w-[70%] h-[90%] top-[10%] left-[10%] rounded-full blur-[35px] opacity-80 pointer-events-none animate-float-medium-mid"
-                style={{ backgroundColor: "#4A00E0" }}
-              />
-              <div 
-                className="absolute w-[70%] h-[90%] top-[10%] right-[10%] rounded-full blur-[35px] opacity-80 pointer-events-none animate-float-medium-mid-delayed"
-                style={{ backgroundColor: "#8E2DE2" }}
+
+            <div
+              className="
+                grid
+                gap-8
+                md:grid-cols-[70px_260px_1fr_120px]
+                md:items-center
+              "
+            >
+
+              {/* ================================= */}
+              {/* NUMERO */}
+              {/* ================================= */}
+
+              <div>
+
+                <span
+                  className="
+                    text-sm
+                    text-black/30
+                    transition-colors
+                    duration-300
+                    group-hover:text-[#F4512A]
+                  "
+                >
+                  {project.number}
+                </span>
+
+              </div>
+
+
+              {/* ================================= */}
+              {/* NOM DU PROJET */}
+              {/* ================================= */}
+
+              <div>
+
+                <h3
+                  className="
+                    text-2xl
+                    font-medium
+                    tracking-tight
+                    text-[#171717]
+                    transition-transform
+                    duration-300
+                    group-hover:translate-x-1
+                    md:text-3xl
+                  "
+                >
+                  {project.name}
+                </h3>
+
+                <p
+                  className="
+                    mt-2
+                    text-sm
+                    text-[#737373]
+                  "
+                >
+                  {project.category}
+                </p>
+
+              </div>
+
+
+              {/* ================================= */}
+              {/* VISUEL */}
+              {/* ================================= */}
+
+              <ProjectVisual
+                number={project.number}
               />
 
-              {/* Bottom: Dark Shade Blob (Slow movement) */}
-              <div 
-                className="absolute w-[100%] h-[60%] -bottom-[30%] left-0 rounded-full blur-[30px] opacity-95 pointer-events-none animate-float-slow-bottom"
-                style={{ backgroundColor: "#161616" }}
-              />
 
-              {/* Fine Grain SVG Noise Overlay */}
-              <div 
-                className="absolute inset-0 opacity-[0.22] pointer-events-none mix-blend-overlay z-10"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-                }}
-              />
-              {/* Number Label */}
-              <span className="relative z-20 text-[#FEF8E8] font-cormorant font-bold text-6xl md:text-[9rem] opacity-40 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none select-none">
-                10
-              </span>
+              {/* ================================= */}
+              {/* LIEN */}
+              {/* ================================= */}
+
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-3
+                  text-sm
+                  text-black/40
+                  transition-all
+                  duration-300
+                  group-hover:gap-5
+                  group-hover:text-[#F4512A]
+                "
+              >
+
+                <span className="hidden md:block">
+                  Voir
+                </span>
+
+                <span
+                  className="
+                    text-xl
+                    transition-transform
+                    duration-300
+                    group-hover:translate-x-1
+                  "
+                >
+                  ↗
+                </span>
+
+              </div>
+
             </div>
-            {renderArrowOverlay()}
+
+
+            {/* ================================= */}
+            {/* SERVICES */}
+            {/* ================================= */}
+
+            <div className="mt-6 md:ml-[330px]">
+
+              <span
+                className="
+                  text-[10px]
+                  uppercase
+                  tracking-[0.25em]
+                  text-black/30
+                  transition-colors
+                  duration-300
+                  group-hover:text-black/50
+                "
+              >
+                {project.services}
+              </span>
+
+            </div>
+
           </a>
-        </section>
+
+        ))}
+
       </div>
-    );
-  }
-);
 
-Component.displayName = 'Component';
 
-export default Component;
+      {/* ========================================= */}
+      {/* CTA */}
+      {/* ========================================= */}
+
+      <div
+        className="
+          mx-auto
+          mt-24
+          flex
+          max-w-7xl
+          justify-center
+        "
+      >
+
+        <a
+          href="#contact"
+          className="
+            group
+            flex
+            items-center
+            gap-5
+            border
+            border-[#F4512A]/40
+            px-8
+            py-4
+            text-sm
+            text-[#171717]
+            transition-all
+            duration-300
+            hover:border-[#F4512A]
+            hover:bg-[#F4512A]
+            hover:text-white
+          "
+        >
+
+          <span>
+            Parlons de votre projet
+          </span>
+
+          <span
+            className="
+              text-lg
+              transition-transform
+              duration-300
+              group-hover:translate-x-1
+            "
+          >
+            →
+          </span>
+
+        </a>
+
+      </div>
+
+    </section>
+  );
+}
